@@ -606,21 +606,12 @@
     <div id="audio-missing-notice">
         <button class="close-btn" onclick="this.parentNode.style.display='none';">×</button>
         <p><strong>提示：</strong>未找到雷军"Are You OK"音频文件。</p>
-        <p>请完成以下步骤：</p>
-        <ol style="margin-top:5px; margin-left:15px; padding-left:5px;">
-            <li>1. 从网络下载雷军"Are You OK"音频片段</li>
-            <li>2. 将文件重命名为"leijun-are-you-ok.mp3"</li>
-            <li>3. 将文件放在网站根目录（与index.html同级）</li>
-            <li>4. 刷新页面</li>
-        </ol>
-        <p style="margin-top:5px; font-size:11px;">或者，您可以在<a href="https://youtu.be/yJVJipMAUKQ" target="_blank" style="color:#0000EE; text-decoration:underline;">YouTube</a>观看原视频</p>
+        <p>请将音频文件"leijun-are-you-ok.mp3"放在网站根目录（与index.html同级）</p>
     </div>
     
     <!-- 雷军音频元素 -->
     <audio id="leijun-audio" loop preload="auto" autoplay>
         <source src="leijun-are-you-ok.mp3" type="audio/mpeg">
-        <source src="audio/leijun-are-you-ok.mp3" type="audio/mpeg">
-        <source src="assets/leijun-are-you-ok.mp3" type="audio/mpeg">
         您的浏览器不支持音频元素
     </audio>
     
@@ -2125,8 +2116,8 @@
             let userInteracted = false;
             let audioFileExists = false;
             
-            // 设置音量 - 增大音量
-            audio.volume = 0.8;
+            // 设置音量 - 调整为较小音量
+            audio.volume = 0.3;
             
             // 检查音频是否可用
             function checkAudioAvailability() {

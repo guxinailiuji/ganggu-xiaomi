@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>反关财经 不霁何虹 - 港股基本面分析平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <!-- 添加音频播放相关样式 -->
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-light: #93c5fd;
+            --primary-dark: #1d4ed8;
+            --accent-color: #f59e0b;
+            --accent-light: #fcd34d;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+            color: var(--primary-dark);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-card {
+            background: linear-gradient(to bottom right, #ffffff, #f9fafb);
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .data-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-card .title {
+            color: #6b7280;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .data-card .value {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .data-card .comparison {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+        
+        .table-header {
+            background-color: #f1f5f9;
+        }
+        
+        .highlight-row {
+            background-color: #eff6ff;
+        }
+        
+        .competitor-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .competitor-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 新的财务指标提示样式 */
+        .indicator-tooltip {
+            position: absolute;
+            visibility: hidden;
+            opacity: 0;
+            width: 220px;
+            background-color: #334155;
+            color: white;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px 10px;
+            z-index: 10;
+            right: -230px;
+            top: 0;
+            font-size: 12px;
+            line-height: 1.4;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .indicator-tooltip::before {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent #334155 transparent transparent;
+        }
+        
+        .data-card:hover .indicator-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .indicator-tooltip {
+                right: auto;
+                top: auto;
+                bottom: 100%;
+                left: 0;
+                margin-bottom: 10px;
+            }
+            
+            .indicator-tooltip::before {
+                top: 100%;
+                left: 15px;
+                border-color: #334155 transparent transparent transparent;
+            }
+        }
+        
+        /* 金融指标说明区域 */
+        .finance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        
+        .metric-card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 12px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        
+        .metric-card .name {
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+        }
+        
+        .metric-card .desc {
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+        
+        /* 移除旧的tooltip样式 */
+        .info-icon, .tooltip, .tooltip-text,
+        .finance-term, .metric-explanation, .metric-explanation .term, .metric-explanation .value {
+            display: none;
+        }
+        
+        /* 响应式布局调整 */
+        @media (max-width: 1200px) {
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .grid-cols-4 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
+        
+        /* 指标变化箭头样式 */
+        .trend-up {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        
+        .trend-down {
+            color: #10b981;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .trend-up::before {
+            content: "↑";
+            margin-right: 2px;
+        }
+        
+        .trend-down::before {
+            content: "↓";
+            margin-right: 2px;
+        }
+        
+        /* 高亮闪烁效果 */
+        @keyframes pulse-blue {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+        
+        @keyframes pulse-amber {
+            0% {
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(251, 191, 36, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+            }
+        }
+        
+        @keyframes pulse-purple {
+            0% {
+                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(168, 85, 247, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
+            }
+        }
+        
+        @keyframes pulse-emerald {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+        
+        @keyframes pulse-teal {
+            0% {
+                box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(20, 184, 166, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(20, 184, 166, 0);
+            }
+        }
+        
+        @keyframes pulse-pink {
+            0% {
+                box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.5);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(236, 72, 153, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(236, 72, 153, 0);
+            }
+        }
+        
+        @keyframes glow {
+            0% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.2);
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+        
+        .highlight-pulse {
+            animation-duration: 3s;
+            animation-fill-mode: forwards;
+            animation-iteration-count: infinite;
+        }
+        
+        .highlight-pulse[style*="pulse-blue"] {
+            animation-name: pulse-blue;
+        }
+        
+        .highlight-pulse[style*="pulse-amber"] {
+            animation-name: pulse-amber;
+        }
+        
+        .highlight-pulse[style*="pulse-purple"] {
+            animation-name: pulse-purple;
+        }
+        
+        .highlight-pulse[style*="pulse-emerald"] {
+            animation-name: pulse-emerald;
+        }
+        
+        .highlight-pulse[style*="pulse-teal"] {
+            animation-name: pulse-teal;
+        }
+        
+        .highlight-pulse[style*="pulse-pink"] {
+            animation-name: pulse-pink;
+        }
+        
+        .highlight-pulse[style*="glow"] {
+            animation-name: glow;
+        }
+        
+        /* 添加风险分析的红色脉动效果 */
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+        
+        /* 百分比条闪烁效果 */
+        @keyframes bar-glow {
+            0% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.3) drop-shadow(0 0 3px rgba(59, 130, 246, 0.6));
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+        
+        /* 标签闪烁效果 */
+        @keyframes badge-glow-green {
+            0% {
+                box-shadow: 0 0 5px 0 rgba(16, 185, 129, 0.5);
+                filter: brightness(1);
+            }
+            50% {
+                box-shadow: 0 0 10px 2px rgba(16, 185, 129, 0.7);
+                filter: brightness(1.2);
+            }
+            100% {
+                box-shadow: 0 0 5px 0 rgba(16, 185, 129, 0.5);
+                filter: brightness(1);
+            }
+        }
+        
+        @keyframes badge-glow-red {
+            0% {
+                box-shadow: 0 0 5px 0 rgba(239, 68, 68, 0.5);
+                filter: brightness(1);
+            }
+            50% {
+                box-shadow: 0 0 10px 2px rgba(239, 68, 68, 0.7);
+                filter: brightness(1.2);
+            }
+            100% {
+                box-shadow: 0 0 5px 0 rgba(239, 68, 68, 0.5);
+                filter: brightness(1);
+            }
+        }
+        
+        .corner-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+        }
+        
+        /* 闪烁效果变体 */
+        @keyframes bar-glow-purple {
+            0% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.3) drop-shadow(0 0 3px rgba(168, 85, 247, 0.6));
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+        
+        @keyframes bar-glow-amber {
+            0% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.3) drop-shadow(0 0 3px rgba(245, 158, 11, 0.6));
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+        
+        @keyframes bar-glow-emerald {
+            0% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.3) drop-shadow(0 0 3px rgba(16, 185, 129, 0.6));
+            }
+            100% {
+                filter: brightness(1);
+            }
+        }
+        
+        /* 闪烁效果动画 */
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .blink-effect {
+            animation: blink 1.5s ease-in-out infinite;
+            text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+        }
+        
+        /* 进度条动画效果 */
+        @keyframes progress-glow {
+            0% { box-shadow: 0 0 3px rgba(255, 255, 255, 0.5); }
+            50% { box-shadow: 0 0 8px rgba(255, 255, 255, 0.8); }
+            100% { box-shadow: 0 0 3px rgba(255, 255, 255, 0.5); }
+        }
+        
+        @keyframes progress-pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        @keyframes progress-scroll {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        
+        .progress-bar-bullish {
+            background: linear-gradient(90deg, #22c55e, #34d399, #22c55e);
+            background-size: 200% 100%;
+            animation: progress-pulse 2s infinite, progress-glow 2s infinite, progress-scroll 3s linear infinite;
+            border-radius: 9999px;
+        }
+        
+        .progress-bar-neutral {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+            background-size: 200% 100%;
+            animation: progress-pulse 2s infinite, progress-glow 2s infinite, progress-scroll 3s linear infinite;
+            border-radius: 9999px;
+        }
+        
+        .progress-bar-bearish {
+            background: linear-gradient(90deg, #ef4444, #f87171, #ef4444);
+            background-size: 200% 100%;
+            animation: progress-pulse 2s infinite, progress-glow 2s infinite, progress-scroll 3s linear infinite;
+            border-radius: 9999px;
+        }
+        
+        /* 雷军彩蛋样式 */
+        #leijun-container {
+            position: fixed;
+            display: none;
+            z-index: 9999;
+            width: 200px;
+            height: 200px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        #leijun-container.active {
+            opacity: 1;
+        }
+        
+        #leijun-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        /* 雷军音频控制按钮 */
+        #leijun-audio-control {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            user-select: none;
+        }
+        
+        #leijun-audio-control:hover {
+            background-color: rgba(255, 255, 255, 1);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .audio-toggle {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            background-color: #ccc;
+            border-radius: 20px;
+            margin-left: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .audio-toggle::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: white;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .audio-toggle.active {
+            background-color: #4CAF50;
+        }
+        
+        .audio-toggle.active::after {
+            left: 22px;
+        }
+        
+        /* 音频文件缺失提示 */
+        #audio-missing-notice {
+            position: fixed;
+            top: 60px;
+            right: 15px;
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 9998;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: block; /* 默认显示 */
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #856404;
+            float: right;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-gray-900 min-h-screen">
+    <!-- 雷军音频控制开关 -->
+    <div id="leijun-audio-control">
+        <span>雷军 Are You OK</span>
+        <div class="audio-toggle active"></div>
+    </div>
+    
+    <!-- 音频文件缺失提示 -->
+    <div id="audio-missing-notice">
+        <button class="close-btn" onclick="this.parentNode.style.display='none';">×</button>
+        <p><strong>提示：</strong>未找到雷军"Are You OK"音频文件。</p>
+        <p>请完成以下步骤：</p>
+        <ol style="margin-top:5px; margin-left:15px; padding-left:5px;">
+            <li>1. 从网络下载雷军"Are You OK"音频片段</li>
+            <li>2. 将文件重命名为"leijun-are-you-ok.mp3"</li>
+            <li>3. 将文件放在网站根目录（与index.html同级）</li>
+            <li>4. 刷新页面</li>
+        </ol>
+        <p style="margin-top:5px; font-size:11px;">或者，您可以在<a href="https://youtu.be/yJVJipMAUKQ" target="_blank" style="color:#0000EE; text-decoration:underline;">YouTube</a>观看原视频</p>
+    </div>
+    
+    <!-- 雷军音频元素 -->
+    <audio id="leijun-audio" loop preload="auto" autoplay>
+        <source src="leijun-are-you-ok.mp3" type="audio/mpeg">
+        <source src="audio/leijun-are-you-ok.mp3" type="audio/mpeg">
+        <source src="assets/leijun-are-you-ok.mp3" type="audio/mpeg">
+        您的浏览器不支持音频元素
+    </audio>
+    
+    <!-- 雷军彩蛋 -->
+    <div id="leijun-container" style="position:fixed; display:none; z-index:9999; width:150px; height:150px; pointer-events:none;">
+        <img src="leijun.svg" alt="雷军" style="width:100%; height:100%; object-fit:contain;">
+    </div>
+    
+    <div class="flex flex-col min-h-screen">
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center">
+                    <svg class="w-8 h-8 mr-2 text-blue-600" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 2C8.268 2 2 8.268 2 16C2 23.732 8.268 30 16 30C23.732 30 30 23.732 30 16C30 8.268 23.732 2 16 2Z" fill="currentColor" opacity="0.2" stroke="currentColor" stroke-width="2"/>
+                        <path d="M10 16L14 20L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h1 class="text-xl font-semibold text-blue-700">反关财经 不霁何虹</h1>
+                </div>
+                
+                <!-- 社交媒体图标 -->
+                <div class="flex items-center space-x-3">
+                    <!-- 哔哩哔哩 -->
+                    <a href="https://space.bilibili.com/36229149" target="_blank" title="哔哩哔哩" class="text-gray-600 hover:text-[#00a1d6] transition-colors p-1.5 rounded-full hover:bg-gray-100">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906L17.813 4.653zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773H5.333zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z" />
+                        </svg>
+                    </a>
+                    
+                    <!-- X/推特 -->
+                    <a href="https://x.com/fanguancaijing" target="_blank" title="X/推特" class="text-gray-600 hover:text-[#1DA1F2] transition-colors p-1.5 rounded-full hover:bg-gray-100">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                    </a>
+                    
+                    <!-- 油管/YouTube -->
+                    <a href="https://www.youtube.com/@fanguancaijing" target="_blank" title="YouTube" class="text-gray-600 hover:text-[#FF0000] transition-colors p-1.5 rounded-full hover:bg-gray-100">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                        </svg>
+                    </a>
+                    
+                    <!-- 抖音 -->
+                    <a href="https://www.douyin.com/user/fanguancaijing" target="_blank" title="抖音" class="text-gray-600 hover:text-black transition-colors p-1.5 rounded-full hover:bg-gray-100">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+                        </svg>
+                    </a>
+                    
+                    <!-- 快手 -->
+                    <a href="https://www.kuaishou.com/profile/fanguancaijing" target="_blank" title="快手" class="text-gray-600 hover:text-[#ff5500] transition-colors p-1.5 rounded-full hover:bg-gray-100">
+                        <svg class="w-5 h-5" viewBox="0 0 1024 1024" fill="currentColor">
+                            <path d="M512 0C229.376 0 0 229.376 0 512s229.376 512 512 512 512-229.376 512-512S794.624 0 512 0zm209.526 699.583c-20.77 15.976-44.3 27.517-70.046 34.523-42.948 11.443-88.013 8.99-131.256-2.05.147-61.338.295-122.676.443-184.013 69.164.494 138.328.988 207.492 1.482 1.383-25.321 0-51.132-4.69-75.869-65.8-.494-131.748-.988-197.548-1.482V301.167c-31.975.494-63.947.988-95.92 1.482-3.558 56.648-1.433 113.539-1.923 170.285-66.391-.494-132.93-.988-199.321-1.482-.443 26.603.295 53.35 2.51 79.807 65.8.494 131.748.988 197.548 1.482.494 65.8.988 131.6 1.482 197.548 23.838 1.826 47.766 2.906 71.703 3.104 32.025-.147 63.947-3.06 95.33-9.38 41.514-10.307 80.514-32.617 109.155-66.292 24.775-28.849 40.85-66.39 41.979-104.807 1.45-49.995-9.972-101.232-42.063-140.855-30.69-38.374-78.357-59.996-127.157-61.824-1.826-.051-5.431-.147-7.257-.197-2.463 25.025 4.641 50.638 20.421 70.786 14.15-1.285 28.9.641 41.86 7.7 25.518 13.681 40.9 40.948 47.077 69.207 7.748 35.31 1.137 74.996-20.819 102.316z" />
+                        </svg>
+                    </a>
+                    
+                    <!-- 小红书 -->
+                    <a href="https://www.xiaohongshu.com/user/profile/fanguancaijing" target="_blank" title="小红书" class="text-gray-600 hover:text-[#fe2c55] transition-colors p-1.5 rounded-full hover:bg-gray-100">
+                        <svg class="w-5 h-5" viewBox="0 0 1024 1024" fill="currentColor">
+                            <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm191.3 259.8l-24.5 12.3c-10.6 5.3-23.5 1.1-28.8-9.5-5.3-10.6-1.1-23.5 9.5-28.8l24.5-12.3c10.6-5.3 23.5-1.1 28.8 9.5 5.4 10.6 1.1 23.5-9.5 28.8zM296 513c0-19.9 16.1-36 36-36s36 16.1 36 36-16.1 36-36 36-36-16.1-36-36zm304 0c0-19.9 16.1-36 36-36s36 16.1 36 36-16.1 36-36 36-36-16.1-36-36zm-99.7 124.2c-19.9 0-36-16.1-36-36 0-13.1-18.9-22.1-23.1-7.5-12 42-43.6 35.7-20.2 86.8 14.1 30.9 32.3 35.5 77.1 22.5 45.3-13.1 45.3-13.1 59.4-57 14.1-44.5 14.1-32.9-5.3-63.4-11.4-19-28.1-31.8-32.9-5.3-1.3 7.2-10.8 15.9-19 15.9z" />
+                        </svg>
+                    </a>
+                    
+                    <!-- 微博 -->
+                    <a href="https://weibo.com/fanguancaijing" target="_blank" title="微博" class="text-gray-600 hover:text-[#e6162d] transition-colors p-1.5 rounded-full hover:bg-gray-100">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M10.098 20.323c-3.977.391-7.414-1.406-7.672-4.02-.259-2.609 2.759-5.047 6.74-5.441 3.979-.394 7.413 1.404 7.671 4.018.259 2.6-2.759 5.049-6.737 5.439l-.002.004zM9.05 17.219c-.384.616-1.208.884-1.829.602-.612-.279-.793-.991-.406-1.593.379-.595 1.176-.861 1.793-.601.622.263.82.972.442 1.592zm1.27-1.627c-.141.237-.449.353-.689.253-.236-.09-.313-.361-.177-.586.138-.227.436-.346.672-.24.239.09.315.36.18.601l.014-.028zm.176-2.719c-1.893-.493-4.033.45-4.857 2.118-.836 1.704-.026 3.591 1.886 4.21 1.983.64 4.318-.341 5.132-2.179.8-1.793-.201-3.642-2.161-4.149zm7.563-1.224c-.346-.105-.57-.18-.405-.615.375-.977.42-1.804 0-2.404-.781-1.112-2.915-1.053-5.364-.03 0 0-.766.331-.571-.271.376-1.217.315-2.224-.27-2.809-1.338-1.337-4.869.045-7.888 3.08C1.309 10.87 0 13.273 0 15.348c0 3.981 5.099 6.395 10.086 6.395 6.536 0 10.888-3.801 10.888-6.82 0-1.822-1.547-2.854-2.915-3.284v.01zm1.908-5.092c-.766-.856-1.908-1.187-2.96-.962-.436.09-.706.511-.616.932.09.42.511.691.932.602.511-.105 1.067.044 1.442.465.376.421.466.977.316 1.473-.136.406.09.841.496.976.405.136.84-.09.976-.496.33-1.022.12-2.178-.646-3.035l.06.045zm2.418-2.195c-1.576-1.757-3.905-2.419-6.054-1.968-.496.104-.812.587-.706 1.083.104.496.586.811 1.082.707 1.532-.331 3.185.15 4.296 1.383.857.976 1.187 2.318.781 3.524-.136.526.18 1.052.706 1.188.526.135 1.052-.18 1.188-.706.614-1.892.15-4.026-1.398-5.25l.105.045z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 container mx-auto px-4 py-6">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Left Column - Company Info -->
+                <div class="w-full lg:w-1/3 space-y-6">
+                    <!-- Company Profile -->
+                    <div class="card p-5 border border-gray-100">
+                        <div class="flex items-center mb-4">
+                            <img src="xiaomi.svg" alt="小米集团" class="w-12 h-12 rounded-md mr-3 shadow-sm bg-white p-1">
+                            <div>
+                                <h2 class="text-xl font-semibold text-blue-800">小米集团</h2>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <span class="font-medium">1810.HK</span>
+                                    <span class="mx-2">|</span>
+                                    <span>信息技术 - 电子设备</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 所属赛道和概念标签 -->
+                        <div class="mb-4">
+                            <div class="flex items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700 mr-2">所属赛道:</span>
+                                <div class="flex flex-wrap gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800 highlight-pulse" style="animation: pulse-teal 2.5s infinite, glow 2.5s infinite">智能手机</span>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 highlight-pulse" style="animation: pulse-blue 3s infinite, glow 3s infinite">AIoT</span>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 highlight-pulse" style="animation: pulse-blue 3.5s infinite, glow 3.5s infinite">智能电动汽车</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm font-medium text-gray-700 mr-2">概念标签:</span>
+                                <div class="flex flex-wrap gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800 highlight-pulse" style="animation: pulse-pink 2.8s infinite, glow 2.8s infinite">物联网</span>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 highlight-pulse" style="animation: pulse-purple 3.2s infinite, glow 3.2s infinite">智能家居</span>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 highlight-pulse" style="animation: pulse-emerald 3.6s infinite, glow 3.6s infinite">人工智能</span>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 highlight-pulse" style="animation: pulse-amber 2.7s infinite, glow 2.7s infinite">元宇宙</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 综合分析与排名部分已移至右侧成长能力分析区域 -->
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="data-card">
+                                <div class="title">流通股</div>
+                                <div class="value">1,952,150万股</div>
+                                <div class="rank text-xs text-gray-500 text-right mt-2">行业排名: <span class="text-blue-600 font-medium highlight-pulse" style="animation: pulse-blue 5s infinite">2/42</span></div>
+                            </div>
+                            <div class="data-card">
+                                <div class="title">流通市值</div>
+                                <div class="value">2,968.36亿港元</div>
+                                <div class="rank text-xs text-gray-500 text-right mt-2">行业排名: <span class="text-blue-700 font-bold highlight-pulse" style="animation: pulse-blue 2s infinite, glow 2s infinite">3/42</span></div>
+                            </div>
+                            <div class="data-card">
+                                <div class="title">总股本</div>
+                                <div class="value">2,502,812万股</div>
+                                <div class="rank text-xs text-gray-500 text-right mt-2">行业排名: <span class="text-blue-600 font-medium highlight-pulse" style="animation: pulse-blue 4.5s infinite">1/42</span></div>
+                            </div>
+                            <div class="data-card">
+                                <div class="title">总市值</div>
+                                <div class="value">3,804.27亿港元</div>
+                                <div class="rank text-xs text-gray-500 text-right mt-2">行业排名: <span class="text-blue-700 font-bold highlight-pulse" style="animation: pulse-blue 2s infinite, glow 2s infinite">3/42</span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="data-card">
+                                <div class="title">市盈率(TTM)</div>
+                                <div class="value">24.76</div>
+                                <div class="indicator-tooltip">
+                                    市盈率(TTM) = 当前股价 / 每股收益(TTM)。衡量投资者为企业每1元利润支付的价格，反映股票估值水平。TTM表示最近12个月。
+                                </div>
+                                <div class="rank text-xs text-gray-500 text-right mt-1">行业排名: <span class="text-green-600 font-medium">12/42</span></div>
+                            </div>
+                            <div class="data-card">
+                                <div class="title">市净率</div>
+                                <div class="value">2.87</div>
+                                <div class="indicator-tooltip">
+                                    市净率 = 当前股价 / 每股净资产。反映企业资产的估值水平，低于1表示股价低于账面价值。
+                                </div>
+                                <div class="rank text-xs text-gray-500 text-right mt-1">行业排名: <span class="text-blue-500 font-medium highlight-pulse" style="animation: pulse-blue 6s infinite">8/42</span></div>
+                            </div>
+                            <div class="data-card">
+                                <div class="title">ROE</div>
+                                <div class="value text-green-500">13.82% ↑</div>
+                                <div class="indicator-tooltip">
+                                    净资产收益率(Return On Equity)，表示企业利用股东投入资本的获利能力。ROE = 净利润 / 平均股东权益。
+                                </div>
+                                <div class="rank text-xs text-gray-500 text-right mt-1">行业排名: <span class="text-blue-700 font-bold highlight-pulse" style="animation: pulse-blue 2.5s infinite, glow 2.5s infinite">4/42</span></div>
+                            </div>
+                            <div class="data-card">
+                                <div class="title">ROA</div>
+                                <div class="value text-green-500">5.76% ↑</div>
+                                <div class="indicator-tooltip">
+                                    总资产收益率(Return On Assets)，表示企业利用总资产的获利能力。ROA = 净利润 / 平均总资产。
+                                </div>
+                                <div class="rank text-xs text-gray-500 text-right mt-1">行业排名: <span class="text-blue-600 font-bold highlight-pulse" style="animation: pulse-blue 3s infinite, glow 3s infinite">6/42</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Financial Reports -->
+                    <!-- DELETED: 财报与公告 section -->
+                </div>
+
+                <!-- Right Column - Data Analysis -->
+                <div class="w-full lg:w-2/3 space-y-6">
+                    <!-- Content Sections -->
+                    <div class="card">
+                        <!-- Growth Ability Section -->
+                        <div class="p-6 border-b border-gray-100">
+                            <h3 class="section-title">成长能力分析</h3>
+                            
+                            <!-- 综合分析与排名 -->
+                            <div class="grid grid-cols-4 gap-4 mb-6">
+                                <!-- 潜力分析 -->
+                                <div class="card p-3 bg-gradient-to-br from-blue-50 to-white border border-blue-100 relative">
+                                    <div id="potentialBadge" class="corner-badge hidden"></div>
+                                    <div class="text-sm font-medium text-blue-700 mb-1">潜力分析</div>
+                                    <div class="text-2xl font-bold text-blue-600 mb-2">86.4%</div>
+                                    <div class="text-xs text-gray-600">
+                                        <div class="flex items-center mb-1">
+                                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                                <div class="bg-blue-600 h-1.5 rounded-full animate-pulse" style="width: 86.4%; animation: bar-glow 2s infinite;"></div>
+                                            </div>
+                                        </div>
+                                        布局人工智能、智能汽车及全球市场扩张，高端手机战略持续推进
+                                    </div>
+                                </div>
+                                
+                                <!-- 风险分析 -->
+                                <div class="card p-3 bg-gradient-to-br from-amber-50 to-white border border-amber-100 relative">
+                                    <div id="riskBadge" class="corner-badge hidden"></div>
+                                    <div class="text-sm font-medium text-amber-700 mb-1">风险分析</div>
+                                    <div class="text-2xl font-bold text-amber-600 mb-2">42.8%</div>
+                                    <div class="text-xs text-gray-600">
+                                        <div class="flex items-center mb-1">
+                                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                                <div class="bg-amber-500 h-1.5 rounded-full" style="width: 42.8%; animation: bar-glow-amber 3s infinite;"></div>
+                                            </div>
+                                        </div>
+                                        全球宏观经济不确定性、手机市场竞争激烈及智能电动汽车投入周期长
+                                    </div>
+                                </div>
+                                
+                                <!-- 确定性分析 -->
+                                <div class="card p-3 bg-gradient-to-br from-purple-50 to-white border border-purple-100 relative">
+                                    <div id="certaintyBadge" class="corner-badge hidden"></div>
+                                    <div class="text-sm font-medium text-purple-700 mb-1">确定性分析</div>
+                                    <div class="text-2xl font-bold text-purple-600 mb-2">82.3%</div>
+                                    <div class="text-xs text-gray-600">
+                                        <div class="flex items-center mb-1">
+                                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                                <div class="bg-purple-500 h-1.5 rounded-full animate-pulse" style="width: 82.3%; animation: bar-glow-purple 2.5s infinite;"></div>
+                                            </div>
+                                        </div>
+                                        基于品牌影响力、用户生态和研发实力，手机和IoT业务增长具有高确定性
+                                    </div>
+                                </div>
+                                
+                                <!-- 行业排名 -->
+                                <div class="card p-3 bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 relative">
+                                    <div id="rankBadge" class="corner-badge"></div>
+                                    <div class="text-sm font-medium text-emerald-700 mb-1">行业综合排名</div>
+                                    <div class="text-2xl font-bold text-emerald-600 mb-2">2<span class="text-base">/5</span></div>
+                                    <div class="text-xs text-gray-600">
+                                        <div class="flex items-center mb-1">
+                                            <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                                <div class="bg-emerald-500 h-1.5 rounded-full animate-pulse" style="width: 87%; animation: bar-glow-emerald 2s infinite;"></div>
+                                            </div>
+                                        </div>
+                                        在用户规模、IoT生态、研发投入和国际化四个维度均表现出色
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Growth Metrics Chart -->
+                            <div class="h-72 mb-8" id="growth-metrics-chart"></div>
+                            
+                            <!-- Key Growth Metrics -->
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+                                <div class="data-card bg-gradient-to-br from-blue-50 to-white">
+                                    <div class="title">营收增长率(近5年)</div>
+                                    <div class="value text-green-600">19.8%</div>
+                                    <div class="comparison">行业平均: 15.8%</div>
+                                    <div class="indicator-tooltip">
+                                        近5年营业收入的年均复合增长率(CAGR)，反映企业业务规模扩张速度。高于行业平均表明企业市场份额在不断扩大。
+                                    </div>
+                                </div>
+                                <div class="data-card bg-gradient-to-br from-blue-50 to-white">
+                                    <div class="title">净利润增长率(近5年)</div>
+                                    <div class="value text-green-600">27.3%</div>
+                                    <div class="comparison">行业平均: 12.7%</div>
+                                    <div class="indicator-tooltip">
+                                        近5年净利润的年均复合增长率(CAGR)，反映企业盈利能力的提升速度。净利润增长快于营收增长表明企业效率提高。
+                                    </div>
+                                </div>
+                                <div class="data-card bg-gradient-to-br from-blue-50 to-white">
+                                    <div class="title">EPS增长率(近5年)</div>
+                                    <div class="value text-green-600">25.7%</div>
+                                    <div class="comparison">行业平均: 10.5%</div>
+                                    <div class="indicator-tooltip">
+                                        近5年每股收益的年均复合增长率(CAGR)，考虑了股本变动因素后的每股盈利增速，是反映股东回报增长的核心指标。
+                                    </div>
+                                </div>
+                                <div class="data-card bg-gradient-to-br from-blue-50 to-white">
+                                    <div class="title">资产增长率(近5年)</div>
+                                    <div class="value text-green-600">23.9%</div>
+                                    <div class="comparison">行业平均: 18.2%</div>
+                                    <div class="indicator-tooltip">
+                                        近5年总资产的年均复合增长率(CAGR)，反映企业资产规模扩张速度，包括固定资产和流动资产的总和。资产增速高于营收增速通常意味着资本密集型投资。
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Additional Financial Indicators -->
+                            <h4 class="text-md font-medium mb-3 text-blue-700">基础财务指标</h4>
+                            <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                                <h5 class="text-sm font-medium mb-2 text-gray-600">财务指标说明</h5>
+                                <div class="finance-metrics">
+                                    <div class="metric-card">
+                                        <div class="name">毛利率</div>
+                                        <div class="desc">表示产品销售收入扣除成本后的毛利与收入的比值，反映产品的基础盈利能力和企业的定价权</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="name">净利率</div>
+                                        <div class="desc">表示最终净利润与营业收入的比值，反映企业整体盈利效率，包含了各种费用和税收因素</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="name">自由现金流</div>
+                                        <div class="desc">经营活动产生的现金流量净额减去资本开支，表示企业可自由支配的现金，是评估企业真实赚钱能力的重要指标</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="name">研发投入</div>
+                                        <div class="desc">用于研究与开发的费用支出，反映企业创新能力与长期发展潜力，是高科技企业竞争力的关键指标</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="name">营收增长率</div>
+                                        <div class="desc">衡量企业营业收入年度增长的速度，是判断企业规模扩张和市场占有率变化的重要指标。持续高增长表明产品或服务具有强劲的市场需求。</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="name">资产增长率</div>
+                                        <div class="desc">反映企业总资产规模扩张的速度，包括固定资产和流动资产的增长。高资产增长率通常意味着企业进行了大规模投资扩产，但需注意与营收增长的匹配度。</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="name">净利润增长率</div>
+                                        <div class="desc">表示企业盈利能力提升的速度，是反映企业价值增长的核心指标。若净利润增长快于营收增长，表明企业运营效率提高或议价能力增强。</div>
+                                    </div>
+                                    <div class="metric-card">
+                                        <div class="name">EPS(每股收益)</div>
+                                        <div class="desc">每股股票所代表的利润，计算方式为净利润除以总股本。考虑了股本变动因素，是投资者评估投资回报的关键指标，也是市盈率计算的基础。</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto mb-6">
+                                <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
+                                    <thead>
+                                        <tr class="table-header">
+                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border-b border-r">项目</th>
+                                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-600 uppercase tracking-wider border-b border-r">2021</th>
+                                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-600 uppercase tracking-wider border-b border-r">2022</th>
+                                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-600 uppercase tracking-wider border-b border-r">2023</th>
+                                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-600 uppercase tracking-wider border-b border-r">2024E</th>
+                                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-600 uppercase tracking-wider border-b">2025E</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">营业收入(亿元)</td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>3,285.1</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>3,438.1</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">4.7%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>4,575.4</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">33.1%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>5,413.2</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">18.3%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700">
+                                                <strong>6,392.6</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">18.1%</span></div>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">毛利(亿元)</td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>581.9</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>524.8</strong>
+                                                <div class="text-xs mt-1"><span class="trend-down">-9.8%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>775.7</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">47.8%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>944.8</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">21.8%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700">
+                                                <strong>1,120.9</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">18.6%</span></div>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">毛利率(%)</td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>17.7%</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>15.3%</strong>
+                                                <div class="text-xs mt-1"><span class="trend-down">-2.4%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>17.0%</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">1.7%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>17.5%</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">0.5%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700">
+                                                <strong>17.5%</strong>
+                                                <div class="text-xs mt-1"><span class="trend-neutral">0.0%</span></div>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">净利润(亿元)</td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>196.4</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>85.2</strong>
+                                                <div class="text-xs mt-1"><span class="trend-down">-56.6%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>271.1</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">218.2%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>326.5</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">20.4%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700">
+                                                <strong>394.0</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">20.7%</span></div>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">净利率(%)</td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>6.0%</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>2.5%</strong>
+                                                <div class="text-xs mt-1"><span class="trend-down">-3.5%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>5.9%</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">3.4%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>6.0%</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">0.1%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700">
+                                                <strong>6.2%</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">0.2%</span></div>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">EPS(元)</td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>0.79</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>0.34</strong>
+                                                <div class="text-xs mt-1"><span class="trend-down">-57.0%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>1.07</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">214.7%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>1.29</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">20.6%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700">
+                                                <strong>1.56</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">20.9%</span></div>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">研发投入(亿元)</td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>131.2</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>167.5</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">27.7%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>203.2</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">21.3%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <strong>249.0</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">22.5%</span></div>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700">
+                                                <strong>307.8</strong>
+                                                <div class="text-xs mt-1"><span class="trend-up">23.6%</span></div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- 机构评级与价格目标 -->
+                            <h4 class="text-md font-medium mt-8 mb-3 text-blue-700">机构评级与价格目标</h4>
+                            
+                            <div class="mb-6">
+                                <!-- 价格目标统计 -->
+                                <div class="card p-4">
+                                    <h5 class="text-sm font-medium mb-3 text-gray-700">价格目标统计</h5>
+                                    <div class="grid grid-cols-2 gap-4 mb-4">
+                                        <div class="data-card bg-gradient-to-br from-blue-50 to-white">
+                                            <div class="title">当前价格</div>
+                                            <div class="value text-blue-600">40.65港元</div>
+                                            <div class="comparison">较30日均价: <span class="text-green-600">+9.8%</span></div>
+                                        </div>
+                                        <div class="data-card bg-gradient-to-br from-green-50 to-white">
+                                            <div class="title">平均目标价格</div>
+                                            <div class="value text-green-600">47.50港元</div>
+                                            <div class="comparison">上行空间: <span class="text-green-600">+16.9%</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="data-card bg-gradient-to-br from-amber-50 to-white">
+                                            <div class="title">最高目标价格</div>
+                                            <div class="value text-amber-600">55.20港元</div>
+                                            <div class="comparison">上行空间: <span class="text-green-600">+35.8%</span></div>
+                                        </div>
+                                        <div class="data-card bg-gradient-to-br from-red-50 to-white">
+                                            <div class="title">最低目标价格</div>
+                                            <div class="value text-red-600">36.80港元</div>
+                                            <div class="comparison">下行风险: <span class="text-red-600">-9.5%</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 主要机构评级明细 -->
+                            <div class="overflow-x-auto mb-6">
+                                <table class="min-w-full bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm">
+                                    <thead>
+                                        <tr class="table-header">
+                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border-b">券商机构</th>
+                                            <th class="py-3 px-4 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border-b">评级</th>
+                                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-600 uppercase tracking-wider border-b">目标价格</th>
+                                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-600 uppercase tracking-wider border-b">上行空间</th>
+                                            <th class="py-3 px-4 text-right text-xs font-medium text-gray-600 uppercase tracking-wider border-b">评级日期</th>
+                                            <th class="py-3 px-4 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border-b">核心观点</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">摩根大通</td>
+                                            <td class="py-3 px-4 text-sm text-center border-r">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">买入</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>55.20港元</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <span class="text-green-600 font-medium">+35.8%</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">2024-06-10</td>
+                                            <td class="py-3 px-4 text-sm text-gray-700">高端手机战略成功，智能电动汽车前景广阔</td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">花旗银行</td>
+                                            <td class="py-3 px-4 text-sm text-center border-r">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">买入</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>52.80港元</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <span class="text-green-600 font-medium">+29.9%</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">2024-05-30</td>
+                                            <td class="py-3 px-4 text-sm text-gray-700">AIoT生态系统优势明显，全球市场扩张加速</td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">高盛</td>
+                                            <td class="py-3 px-4 text-sm text-center border-r">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">买入</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>48.60港元</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <span class="text-green-600 font-medium">+19.6%</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">2024-05-22</td>
+                                            <td class="py-3 px-4 text-sm text-gray-700">高端手机销量超预期，人工智能布局前景广阔</td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">中金公司</td>
+                                            <td class="py-3 px-4 text-sm text-center border-r">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">增持</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>46.50港元</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <span class="text-green-600 font-medium">+14.4%</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">2024-05-15</td>
+                                            <td class="py-3 px-4 text-sm text-gray-700">智能手机品牌力提升，海外收入占比持续增长</td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">德意志银行</td>
+                                            <td class="py-3 px-4 text-sm text-center border-r">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">持有</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>42.50港元</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <span class="text-green-600 font-medium">+4.6%</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">2024-05-10</td>
+                                            <td class="py-3 px-4 text-sm text-gray-700">智能电动汽车投入大，短期利润承压</td>
+                                        </tr>
+                                        <tr class="hover:bg-blue-50 transition-colors">
+                                            <td class="py-3 px-4 text-sm font-medium text-gray-700 border-r">瑞银集团</td>
+                                            <td class="py-3 px-4 text-sm text-center border-r">
+                                                <span class="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">减持</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r"><strong>36.80港元</strong></td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">
+                                                <span class="text-red-600 font-medium">-9.5%</span>
+                                            </td>
+                                            <td class="py-3 px-4 text-sm text-right text-gray-700 border-r">2024-05-05</td>
+                                            <td class="py-3 px-4 text-sm text-gray-700">全球智能手机市场竞争激烈，研发投入压力大</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- 主观价格预期与长期目标价 -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <!-- 主观预期价格 -->
+                                <div class="card p-4">
+                                    <h4 class="text-md font-medium mb-3 text-blue-700 blink-effect">反关财经主观预期价格</h4>
+                                    <div class="flex items-center mb-4">
+                                        <div class="w-2/3">
+                                            <div class="flex flex-col space-y-2">
+                                                <div class="flex justify-between">
+                                                    <span class="text-sm text-gray-600">看多</span>
+                                                    <span class="text-sm font-medium text-green-600">52.00港元</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="progress-bar-bullish h-2" style="width: 82%"></div>
+                                                </div>
+                                                <div class="flex justify-between mt-1">
+                                                    <span class="text-sm text-gray-600">基准</span>
+                                                    <span class="text-sm font-medium text-blue-600">45.30港元</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="progress-bar-neutral h-2" style="width: 64%"></div>
+                                                </div>
+                                                <div class="flex justify-between mt-1">
+                                                    <span class="text-sm text-gray-600">看空</span>
+                                                    <span class="text-sm font-medium text-red-600">35.80港元</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="progress-bar-bearish h-2" style="width: 28%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="w-1/3 flex justify-center">
+                                            <div class="text-center px-4 py-3 bg-gradient-to-br from-blue-50 to-white rounded-lg border border-blue-100">
+                                                <div class="text-sm text-gray-600 mb-1">主观胜率</div>
+                                                <div class="text-2xl font-bold text-blue-600 mb-1">75%</div>
+                                                <div class="text-xs text-gray-500">较上月: <span class="text-green-600">+5%</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-gray-700 mt-3">
+                                        <p>基于产业链调研、市场格局分析及新产品技术评估，我们认为小米在智能手机和AIoT领域的品牌力持续提升，同时人工智能和智能汽车等新业务布局将为长期增长提供动力。关注全球宏观经济不确定性及智能手机市场竞争格局变化带来的影响。</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 周期长期目标价 -->
+                                <div class="card p-4">
+                                    <h4 class="text-md font-medium mb-3 text-blue-700">周期长期目标价 (2024-2027)</h4>
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                                            <thead>
+                                                <tr class="bg-gray-50">
+                                                    <th class="py-2 px-3 text-left text-xs font-medium text-gray-600 uppercase">周期</th>
+                                                    <th class="py-2 px-3 text-right text-xs font-medium text-gray-600 uppercase">乐观目标价</th>
+                                                    <th class="py-2 px-3 text-right text-xs font-medium text-gray-600 uppercase">基准目标价</th>
+                                                    <th class="py-2 px-3 text-right text-xs font-medium text-gray-600 uppercase">悲观目标价</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-100">
+                                                <tr>
+                                                    <td class="py-2 px-3 text-sm font-medium text-gray-700">短期(6个月)</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-green-600 font-medium">54.80港元</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-blue-600 font-medium">47.20港元</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-red-600 font-medium">38.50港元</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="py-2 px-3 text-sm font-medium text-gray-700">中期(1年)</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-green-600 font-medium">62.50港元</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-blue-600 font-medium">53.80港元</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-red-600 font-medium">42.60港元</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="py-2 px-3 text-sm font-medium text-gray-700">长期(2年)</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-green-600 font-medium">75.40港元</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-blue-600 font-medium">65.20港元</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-red-600 font-medium">52.50港元</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="py-2 px-3 text-sm font-medium text-gray-700">超长期(3年)</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-green-600 font-medium">86.50港元</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-blue-600 font-medium">74.80港元</td>
+                                                    <td class="py-2 px-3 text-sm text-right text-red-600 font-medium">60.20港元</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="text-sm text-gray-700 mt-3">
+                                        <p>目标价基于以下假设：1) 高端智能手机市场份额持续提升; 2) AIoT生态系统规模持续扩大; 3) 全球市场份额稳步增长; 4) 智能电动汽车业务成功落地。关注全球宏观经济变化、智能手机行业竞争格局及研发投入效率等因素可能带来的不确定性。</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="competitor-card p-4">
+                                    <h4 class="text-md font-medium mb-3 text-blue-700">小米集团</h4>
+                                    <p class="text-sm text-gray-700 mb-2">小米集团是全球第三大智能手机制造商，市占率13.7%，在智能手机、AIoT和互联网服务领域构建了领先的生态系统。公司采用"硬件+互联网"双引擎模式，通过高性价比产品和多元化的智能设备生态系统赢得了广泛用户基础。2023年营收4,457.2亿元，净利润178.5亿元，研发投入189.6亿元，研发人员超过15,000人。</p>
+                                </div>
+                                
+                                <div class="competitor-card p-4">
+                                    <h4 class="text-md font-medium mb-3 text-blue-700">苹果公司</h4>
+                                    <p class="text-sm text-gray-700 mb-2">苹果作为全球最大科技公司之一，在高端智能手机市场占据主导地位，全球市场份额约17.8%。iPhone产品线凭借强大的品牌影响力和生态系统锁定效应，在高端市场保持领先。2023财年营收3,834亿美元，净利润967亿美元，研发投入约290亿美元，产品利润率和品牌价值在行业内遥遥领先。</p>
+                                </div>
+                                
+                                <div class="competitor-card p-4">
+                                    <h4 class="text-md font-medium mb-3 text-blue-700">三星电子</h4>
+                                    <p class="text-sm text-gray-700 mb-2">三星电子是全球最大的智能手机制造商，市占率19.6%，在高端和中端市场均有布局。公司垂直整合产业链，在显示屏、存储芯片等核心部件领域具有显著优势。2023年智能手机部门营收约950亿美元，但面临来自中国手机厂商的激烈竞争，高端市场份额有所下滑。</p>
+                                </div>
+                                
+                                <div class="competitor-card p-4">
+                                    <h4 class="text-md font-medium mb-3 text-blue-700">OPPO</h4>
+                                    <p class="text-sm text-gray-700 mb-2">OPPO是全球第四大智能手机制造商，市占率9.4%，在中国和东南亚等市场拥有较强影响力。公司专注于产品设计和拍照体验，在中高端市场表现良好。2023年营收约1,430亿元，但利润表现不及行业龙头，在海外市场面临品牌建设和渠道拓展挑战。</p>
+                                </div>
+                                
+                                <div class="competitor-card p-4">
+                                    <h4 class="text-md font-medium mb-3 text-blue-700">vivo</h4>
+                                    <p class="text-sm text-gray-700 mb-2">vivo是全球第五大智能手机制造商，市占率8.7%，在中国和印度等新兴市场拥有较大份额。公司注重影像技术和本地化营销策略，通过线下渠道优势取得市场地位。2023年营收约1,360亿元，在海外市场拓展稳健，但在高端市场和品牌溢价方面仍有提升空间。</p>
+                                </div>
+                                
+                                <div class="competitor-card p-4">
+                                    <h4 class="text-md font-medium mb-3 text-blue-700">华为</h4>
+                                    <p class="text-sm text-gray-700 mb-2">华为虽受美国制裁影响，但凭借强大的研发实力和国内市场支持重回智能手机市场。2023年智能手机出货量约5,000万台，市场份额约4.2%，但增长迅速。公司在芯片自研、鸿蒙系统和AI技术上持续投入，形成独特竞争力。高端Mate系列和可折叠手机在国内市场表现出色，对小米等品牌形成竞争压力。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-white border-t border-gray-200">
+            <div class="container mx-auto px-4 py-3 text-center text-gray-500">
+                数据来源：彭博 & 港交所 | 免责声明：本站提供的信息仅供参考，不构成投资建议。
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // 更新图表配色方案
+        document.addEventListener('DOMContentLoaded', function() {
+        const colorPalette = ['#60a5fa', '#34d399', '#fbbf24', '#a78bfa', '#f472b6'];
+        
+        // Growth Metrics Chart
+        var growthChart = echarts.init(document.getElementById('growth-metrics-chart'));
+        
+        var option = {
+            color: colorPalette,
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                },
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#334155'
+                },
+                formatter: function(params) {
+                    var result = params[0].name;
+                    params.forEach(function(item) {
+                        if (item.seriesName === 'EPS') {
+                            result += '<br/><span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:' + item.color + '"></span>' + item.seriesName + ': ' + item.value + ' 元';
+                        } else {
+                            result += '<br/><span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:' + item.color + '"></span>' + item.seriesName + ': ' + item.value + ' 亿元';
+                        }
+                    });
+                    return result;
+                }
+            },
+            legend: {
+                data: ['营收', '净利润', 'EPS'],
+                right: '5%',
+                textStyle: {
+                    color: '#64748b'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: ['2018', '2019', '2020', '2021', '2022', '2023', '2024E', '2025E'],
+                    axisLine: {
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#64748b'
+                    }
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '营收/净利润(亿元)',
+                    axisLine: {
+                        show: true,
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#64748b',
+                        formatter: '{value}'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#f1f5f9'
+                        }
+                    }
+                },
+                {
+                    type: 'value',
+                    name: 'EPS(元)',
+                    min: 0,
+                    max: 2.0,
+                    interval: 0.4,
+                    axisLabel: {
+                        formatter: '{value}'
+                    },
+                    axisLine: {
+                        show: true,
+                        lineStyle: {
+                            color: '#e2e8f0'
+                        }
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: '营收',
+                    type: 'bar',
+                    data: [1749.7, 2058.8, 2456.3, 3285.1, 3438.1, 4575.4, 5413.2, 6392.6],
+                    barWidth: '16px',
+                    itemStyle: {
+                        borderRadius: [5, 5, 0, 0]
+                    }
+                },
+                {
+                    name: '净利润',
+                    type: 'line',
+                    data: [86.5, 102.3, 135.6, 196.4, 85.2, 271.1, 326.5, 394.0],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5
+                    },
+                    symbol: 'circle',
+                    symbolSize: 7,
+                    itemStyle: {
+                        borderWidth: 2
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            {
+                                offset: 0,
+                                color: 'rgba(52, 211, 153, 0.2)'
+                            },
+                            {
+                                offset: 1,
+                                color: 'rgba(52, 211, 153, 0.05)'
+                            }
+                        ])
+                    }
+                },
+                {
+                    name: 'EPS',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: [0.35, 0.42, 0.56, 0.79, 0.34, 1.07, 1.29, 1.56],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5,
+                        type: 'dashed'
+                    },
+                    symbol: 'emptyCircle',
+                    symbolSize: 7,
+                    itemStyle: {
+                        borderWidth: 2
+                    }
+                }
+            ]
+        };
+        
+        growthChart.setOption(option);
+        
+        // 自由现金流走势图
+        var freeCashFlowChart = echarts.init(document.getElementById('free-cash-flow-chart'));
+        
+        var freeCashFlowOption = {
+            color: colorPalette,
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#334155'
+                }
+            },
+            legend: {
+                data: ['自由现金流', '经营现金流', '投资支出'],
+                right: '5%',
+                textStyle: {
+                    color: '#64748b'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['2018', '2019', '2020', '2021', '2022', '2023', '2024E', '2025E'],
+                axisLine: {
+                    lineStyle: {
+                        color: '#e2e8f0'
+                    }
+                },
+                axisLabel: {
+                    color: '#64748b'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: {
+                    lineStyle: {
+                        color: '#e2e8f0'
+                    }
+                },
+                axisLabel: {
+                    color: '#64748b',
+                    formatter: '{value} 亿元'
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: '#f1f5f9'
+                    }
+                }
+            },
+            series: [
+                {
+                    name: '自由现金流',
+                    type: 'line',
+                    data: [85.3, 114.6, 162.5, 189.4, 120.6, 215.3, 256.8, 298.2],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5
+                    },
+                    symbol: 'circle',
+                    symbolSize: 7,
+                    itemStyle: {
+                        borderWidth: 2
+                    },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            {
+                                offset: 0,
+                                color: 'rgba(96, 165, 250, 0.2)'
+                            },
+                            {
+                                offset: 1,
+                                color: 'rgba(96, 165, 250, 0.05)'
+                            }
+                        ])
+                    }
+                },
+                {
+                    name: '经营现金流',
+                    type: 'line',
+                    data: [125.7, 168.3, 234.8, 265.6, 188.4, 282.2, 330.5, 386.7],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5
+                    },
+                    symbol: 'circle',
+                    symbolSize: 7,
+                    itemStyle: {
+                        borderWidth: 2
+                    }
+                },
+                {
+                    name: '投资支出',
+                    type: 'line',
+                    data: [40.4, 53.7, 72.3, 76.2, 67.8, 66.9, 73.7, 88.5],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5,
+                        type: 'dashed'
+                    },
+                    symbol: 'emptyCircle',
+                    symbolSize: 7,
+                    itemStyle: {
+                        borderWidth: 2
+                    }
+                }
+            ]
+        };
+        
+        freeCashFlowChart.setOption(freeCashFlowOption);
+        
+        // 关键财务指标图表
+        var keyMetricsChart = echarts.init(document.getElementById('key-metrics-chart'));
+        
+        var keyMetricsOption = {
+            color: colorPalette,
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#334155'
+                }
+            },
+            legend: {
+                data: ['营收增长率', '资产增长率', '净利润增长率', 'EPS'],
+                right: '5%',
+                textStyle: {
+                    color: '#64748b'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: ['2018', '2019', '2020', '2021', '2022', '2023', '2024E', '2025E'],
+                axisLine: {
+                    lineStyle: {
+                        color: '#e2e8f0'
+                    }
+                },
+                axisLabel: {
+                    color: '#64748b'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: {
+                    lineStyle: {
+                        color: '#e2e8f0'
+                    }
+                },
+                axisLabel: {
+                    color: '#64748b',
+                    formatter: '{value}%'
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: '#f1f5f9'
+                    }
+                }
+            },
+            series: [
+                {
+                    name: '营收增长率',
+                    type: 'line',
+                    data: [42.3, 17.7, 19.3, 33.6, 17.9, 15.2, 18.6, 16.4],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5
+                    },
+                    symbol: 'circle',
+                    symbolSize: 7
+                },
+                {
+                    name: '资产增长率',
+                    type: 'line',
+                    data: [36.8, 21.4, 27.6, 31.2, 15.8, 18.4, 19.2, 17.5],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5
+                    },
+                    symbol: 'circle',
+                    symbolSize: 7
+                },
+                {
+                    name: '净利润增长率',
+                    type: 'line',
+                    data: [24.6, 18.2, 32.6, 44.8, -56.6, 109.5, 24.8, 24.3],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5
+                    },
+                    symbol: 'circle',
+                    symbolSize: 7
+                },
+                {
+                    name: 'EPS',
+                    type: 'line',
+                    data: [0.35, 0.42, 0.56, 0.79, 0.34, 0.71, 0.89, 1.10],
+                    smooth: true,
+                    lineStyle: {
+                        width: 2.5,
+                        type: 'dashed'
+                    },
+                    symbol: 'emptyCircle',
+                    symbolSize: 7
+                }
+            ]
+        };
+        
+        keyMetricsChart.setOption(keyMetricsOption);
+        
+        // 营收构成饼图
+        var revenueCompositionChart = echarts.init(document.getElementById('revenue-composition-chart'));
+        
+        var revenueCompositionOption = {
+            color: ['#60a5fa', '#34d399', '#f59e0b', '#a78bfa', '#f87171'],
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c}亿元 ({d}%)',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#334155'
+                }
+            },
+            legend: {
+                orient: 'vertical',
+                right: 10,
+                top: 'center',
+                data: ['智能手机', 'AIoT与生活消费产品', '互联网服务', '智能电动汽车', '其他业务'],
+                textStyle: {
+                    color: '#64748b'
+                }
+            },
+            series: [
+                {
+                    name: '营收构成',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 6,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '16',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: [
+                        {value: 2735.7, name: '智能手机'},
+                        {value: 1187.6, name: 'AIoT与生活消费产品'},
+                        {value: 388.9, name: '互联网服务'},
+                        {value: 124.6, name: '智能电动汽车'},
+                        {value: 138.6, name: '其他业务'}
+                    ]
+                }
+            ]
+        };
+        
+        revenueCompositionChart.setOption(revenueCompositionOption);
+        
+        // 业务地区分布饼图
+        var revenueRegionChart = echarts.init(document.getElementById('revenue-region-chart'));
+        
+        var revenueRegionOption = {
+            color: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e'],
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c}亿元 ({d}%)',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#334155'
+                }
+            },
+            legend: {
+                orient: 'vertical',
+                right: 10,
+                top: 'center',
+                data: ['中国大陆', '欧洲', '印度与亚太', '美洲', '其他地区'],
+                textStyle: {
+                    color: '#64748b'
+                }
+            },
+            series: [
+                {
+                    name: '地区分布',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 6,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '16',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: [
+                        {value: 2195.5, name: '中国大陆'},
+                        {value: 1028.1, name: '欧洲'},
+                        {value: 929.1, name: '印度与亚太'},
+                        {value: 297.4, name: '美洲'},
+                        {value: 125.4, name: '其他地区'}
+                    ]
+                }
+            ]
+        };
+        
+        revenueRegionChart.setOption(revenueRegionOption);
+        
+        // 窗口大小调整时，重置所有图表
+        window.addEventListener('resize', function() {
+            growthChart.resize();
+            freeCashFlowChart.resize();
+            keyMetricsChart.resize();
+            revenueCompositionChart.resize();
+            revenueRegionChart.resize();
+        });
+            
+        // 调用初始化所有财务图表函数
+        initAllFinancialCharts();
+        
+        // 初始化标签页控制
+        initTabControl();
+        
+        // 初始化下拉选择框事件
+        initSelectEvents();
+        
+        // 处理潜力分析和确定性分析的高亮显示
+        handleAnalysisHighlight();
+        
+        // 获取当前排名并初始化行业排名高亮
+        const rankEl = document.querySelector('.card .text-sm.font-medium.text-emerald-700.mb-1');
+        if (rankEl) {
+            const rankCard = rankEl.closest('.card');
+            const rankValueEl = rankCard.querySelector('.text-2xl.font-bold');
+            const rankText = rankValueEl.textContent.trim().split('/')[0];
+            
+            // 设置下拉菜单的初始值
+            document.getElementById('industryRank').value = rankText;
+            
+            // 初始化行业排名高亮
+            updateIndustryRank(rankText);
+        }
+    });
+        
+        // 处理潜力分析和确定性分析的高亮显示
+        function handleAnalysisHighlight() {
+            // 获取潜力分析卡片元素
+            const potentialEl = document.querySelector('.card .text-sm.font-medium.text-blue-700.mb-1');
+            const certaintyEl = document.querySelector('.card .text-sm.font-medium.text-purple-700.mb-1');
+            const riskEl = document.querySelector('.card .text-sm.font-medium.text-amber-700.mb-1');
+            
+            if (potentialEl && certaintyEl && riskEl) {
+                const potentialCard = potentialEl.closest('.card');
+                const certaintyCard = certaintyEl.closest('.card');
+                const riskCard = riskEl.closest('.card');
+                
+                const potentialValueEl = potentialCard.querySelector('.text-2xl.font-bold');
+                const certaintyValueEl = certaintyCard.querySelector('.text-2xl.font-bold');
+                const riskValueEl = riskCard.querySelector('.text-2xl.font-bold');
+                
+                const potentialBadge = document.getElementById('potentialBadge');
+                const certaintyBadge = document.getElementById('certaintyBadge');
+                const riskBadge = document.getElementById('riskBadge');
+                
+                if (potentialValueEl && certaintyValueEl && riskValueEl) {
+                    // 提取百分比值
+                    const potentialText = potentialValueEl.textContent;
+                    const certaintyText = certaintyValueEl.textContent;
+                    const riskText = riskValueEl.textContent;
+                    
+                    const potentialValue = parseFloat(potentialText);
+                    const certaintyValue = parseFloat(certaintyText);
+                    const riskValue = parseFloat(riskText);
+                    
+                    // 处理潜力分析
+                    if (potentialValue >= 75) {
+                        // 添加高亮样式
+                        potentialCard.classList.add('highlight-pulse');
+                        
+                        // 计算动画周期和亮度 - 百分比越高，闪烁越快越亮
+                        const animationDuration = Math.max(4 - ((potentialValue - 75) / 25) * 2, 1.5); // 75%时4秒，100%时1.5秒
+                        const brightness = 1 + ((potentialValue - 75) / 25) * 0.5; // 75%时亮度1.0，100%时亮度1.5
+                        
+                        // 显示右上角标签
+                        potentialBadge.className = 'corner-badge text-xs font-semibold text-white bg-green-600 px-1.5 py-0.5 rounded';
+                        potentialBadge.textContent = '优秀';
+                        potentialBadge.style.animation = `badge-glow-green ${animationDuration}s infinite`;
+                        potentialBadge.style.filter = `brightness(${brightness})`;
+                        potentialBadge.style.display = 'block';
+                    } else {
+                        // 移除高亮样式
+                        potentialCard.classList.remove('highlight-pulse');
+                        potentialBadge.style.display = 'none';
+                    }
+                    
+                    // 处理确定性分析
+                    if (certaintyValue >= 75) {
+                        // 添加高亮样式
+                        certaintyCard.classList.add('highlight-pulse');
+                        
+                        // 计算动画周期和亮度 - 百分比越高，闪烁越快越亮
+                        const animationDuration = Math.max(4 - ((certaintyValue - 75) / 25) * 2, 1.5); // 75%时4秒，100%时1.5秒
+                        const brightness = 1 + ((certaintyValue - 75) / 25) * 0.5; // 75%时亮度1.0，100%时亮度1.5
+                        
+                        // 显示右上角标签
+                        certaintyBadge.className = 'corner-badge text-xs font-semibold text-white bg-green-600 px-1.5 py-0.5 rounded';
+                        certaintyBadge.textContent = '优秀';
+                        certaintyBadge.style.animation = `badge-glow-green ${animationDuration}s infinite`;
+                        certaintyBadge.style.filter = `brightness(${brightness})`;
+                        certaintyBadge.style.display = 'block';
+                    } else {
+                        // 移除高亮样式
+                        certaintyCard.classList.remove('highlight-pulse');
+                        certaintyBadge.style.display = 'none';
+                    }
+                    
+                    // 处理风险分析
+                    if (riskValue >= 75) {
+                        // 添加高亮样式
+                        riskCard.classList.add('highlight-pulse');
+                        
+                        // 计算动画周期和亮度 - 百分比越高，闪烁越快越亮
+                        const animationDuration = Math.max(4 - ((riskValue - 75) / 25) * 2, 1.5); // 75%时4秒，100%时1.5秒
+                        const brightness = 1 + ((riskValue - 75) / 25) * 0.5; // 75%时亮度1.0，100%时亮度1.5
+                        
+                        // 显示右上角标签
+                        riskBadge.className = 'corner-badge text-xs font-semibold text-white bg-red-600 px-1.5 py-0.5 rounded';
+                        riskBadge.textContent = '风险';
+                        riskBadge.style.animation = `badge-glow-red ${animationDuration}s infinite`;
+                        riskBadge.style.filter = `brightness(${brightness})`;
+                        riskBadge.style.display = 'block';
+                    } else {
+                        // 移除高亮样式
+                        riskCard.classList.remove('highlight-pulse');
+                        riskBadge.style.display = 'none';
+                    }
+                }
+            }
+        }
+        
+        // 更新行业综合排名
+        function updateIndustryRank(rank) {
+            // 获取行业排名元素
+            const rankEl = document.querySelector('.card .text-sm.font-medium.text-emerald-700.mb-1');
+            if (rankEl) {
+                const rankCard = rankEl.closest('.card');
+                const rankValueEl = rankCard.querySelector('.text-2xl.font-bold');
+                const rankBadge = document.getElementById('rankBadge');
+                const totalRanks = 5; // 总排名数量
+                
+                // 更新排名显示
+                rankValueEl.innerHTML = rank + '<span class="text-base">/' + totalRanks + '</span>';
+                
+                // 清除所有之前的高亮
+                rankCard.classList.remove('highlight-pulse');
+                
+                // 根据排名设置不同的标签和高亮
+                if (rank === '1') {
+                    // 第一名 - 高亮龙头
+                    rankCard.classList.add('highlight-pulse');
+                    
+                    // 设置右上角龙头标签
+                    rankBadge.className = 'corner-badge text-xs font-semibold text-white bg-red-600 px-1.5 py-0.5 rounded';
+                    rankBadge.textContent = '龙头';
+                    rankBadge.style.animation = 'badge-glow-red 2s infinite';
+                    rankBadge.style.display = 'block';
+                    
+                } else if (rank === '2') {
+                    // 第二名 - 次亮龙二
+                    rankCard.classList.add('highlight-pulse');
+                    
+                    // 设置右上角龙二标签
+                    rankBadge.className = 'corner-badge text-xs font-semibold text-white bg-orange-500 px-1.5 py-0.5 rounded';
+                    rankBadge.textContent = '龙二';
+                    rankBadge.style.animation = 'badge-glow-red 3s infinite';
+                    rankBadge.style.display = 'block';
+                } else {
+                    // 其他排名不显示标签
+                    rankBadge.style.display = 'none';
+                }
+                
+                // 更新进度条
+                const progressBar = rankCard.querySelector('.bg-emerald-500');
+                const progressValue = 100 - ((rank - 1) * 18); // 从100%递减
+                progressBar.style.width = progressValue + '%';
+            }
+        }
+        
+        // 页面加载完成后执行初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 处理分析高亮
+            handleAnalysisHighlight();
+            
+            // 设置默认行业排名
+            updateIndustryRank('1');
+            
+            // 其他初始化...
+        });
+    </script>
+    <script>
+        // 雷军彩蛋功能
+        (function() {
+            const leijunElement = document.getElementById('leijun-container');
+            
+            if (!leijunElement) {
+                console.error('雷军彩蛋元素未找到!');
+                return;
+            }
+            
+            function showLeijun() {
+                // 随机位置
+                const maxX = window.innerWidth - 150;
+                const maxY = window.innerHeight - 150;
+                const randomX = Math.max(0, Math.floor(Math.random() * maxX));
+                const randomY = Math.max(0, Math.floor(Math.random() * maxY));
+                
+                // 设置位置和显示
+                leijunElement.style.left = randomX + 'px';
+                leijunElement.style.top = randomY + 'px';
+                leijunElement.style.display = 'block';
+                leijunElement.style.opacity = '0';
+                
+                // 淡入
+                setTimeout(() => {
+                    leijunElement.style.transition = 'opacity 0.3s ease';
+                    leijunElement.style.opacity = '1';
+                }, 50);
+                
+                // 随机显示时间 (1-3秒)
+                const displayTime = 1000 + Math.floor(Math.random() * 2000);
+                
+                // 设置隐藏定时器
+                setTimeout(() => {
+                    // 淡出
+                    leijunElement.style.opacity = '0';
+                    
+                    // 完全隐藏
+                    setTimeout(() => {
+                        leijunElement.style.display = 'none';
+                        scheduleNextAppearance();
+                    }, 300);
+                }, displayTime);
+            }
+            
+            function scheduleNextAppearance() {
+                // 随机下次显示时间 (3-30秒)
+                const nextTime = 3000 + Math.floor(Math.random() * 27000);
+                setTimeout(showLeijun, nextTime);
+            }
+            
+            // 开始彩蛋循环
+            scheduleNextAppearance();
+        })();
+    </script>
+    <!-- 雷军音频控制脚本 -->
+    <script>
+        // 音频控制功能
+        (function() {
+            const audioControl = document.getElementById('leijun-audio-control');
+            const audioToggle = audioControl.querySelector('.audio-toggle');
+            const audio = document.getElementById('leijun-audio');
+            const missingNotice = document.getElementById('audio-missing-notice');
+            let userInteracted = false;
+            let audioFileExists = false;
+            
+            // 设置音量 - 增大音量
+            audio.volume = 0.8;
+            
+            // 检查音频是否可用
+            function checkAudioAvailability() {
+                const testAudio = new Audio();
+                
+                // 尝试加载音频
+                testAudio.addEventListener('canplaythrough', function() {
+                    audioFileExists = true;
+                    // 如果音频文件存在，隐藏提示
+                    missingNotice.style.display = 'none';
+                    
+                    // 确保原始音频尝试播放
+                    tryPlayAudio();
+                });
+                
+                testAudio.addEventListener('error', function() {
+                    // 音频文件不存在，保持提示显示
+                    audioFileExists = false;
+                    missingNotice.style.display = 'block';
+                });
+                
+                // 设置超时，如果5秒内没有加载成功，认为音频不存在
+                setTimeout(function() {
+                    if (!audioFileExists) {
+                        missingNotice.style.display = 'block';
+                    }
+                }, 5000);
+                
+                // 尝试加载
+                testAudio.src = 'leijun-are-you-ok.mp3';
+                testAudio.load();
+            }
+            
+            // 增强版的音频播放尝试函数
+            function tryPlayAudio() {
+                if (!audioFileExists) return;
+                
+                // 尝试播放
+                const playPromise = audio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // 成功播放
+                        audioToggle.classList.add('active');
+                        localStorage.setItem('leijunAudioEnabled', 'true');
+                    }).catch(err => {
+                        console.log('自动播放被阻止，等待用户交互:', err);
+                        // 不改变状态，等待用户交互
+                    });
+                }
+            }
+            
+            // 页面加载时检查音频可用性
+            checkAudioAvailability();
+            
+            // 检查是否已禁用音频
+            function isAudioDisabled() {
+                // 默认设置为启用（改为false）
+                return localStorage.getItem('leijunAudioEnabled') === 'false';
+            }
+            
+            // 设置音频状态
+            function setAudioState(enabled) {
+                if (enabled && audioFileExists) {
+                    audio.play().then(() => {
+                        audioToggle.classList.add('active');
+                        localStorage.setItem('leijunAudioEnabled', 'true');
+                    }).catch(err => {
+                        console.log('播放失败:', err);
+                        audioToggle.classList.remove('active');
+                    });
+                } else {
+                    audio.pause();
+                    audioToggle.classList.remove('active');
+                    localStorage.setItem('leijunAudioEnabled', 'false');
+                }
+            }
+            
+            // 页面加载完成检查状态并尝试播放
+            document.addEventListener('DOMContentLoaded', function() {
+                if (!isAudioDisabled() && audioFileExists) {
+                    tryPlayAudio();
+                } else if (isAudioDisabled()) {
+                    // 用户之前已禁用
+                    audioToggle.classList.remove('active');
+                }
+            });
+            
+            // 在多个事件上尝试播放，以绕过浏览器限制
+            ['click', 'touchstart', 'scroll', 'keydown'].forEach(eventType => {
+                document.addEventListener(eventType, function firstInteraction() {
+                    if (!userInteracted && !isAudioDisabled() && audio.paused && audioFileExists) {
+                        setAudioState(true);
+                        userInteracted = true;
+                        // 移除所有事件监听器
+                        ['click', 'touchstart', 'scroll', 'keydown'].forEach(e => {
+                            document.removeEventListener(e, firstInteraction);
+                        });
+                    }
+                }, { once: false });
+            });
+            
+            // 点击开关切换音频
+            audioControl.addEventListener('click', function(e) {
+                e.stopPropagation(); // 防止触发document的click事件
+                userInteracted = true;
+                
+                if (!audioFileExists) {
+                    // 如果音频文件不存在，显示提示
+                    missingNotice.style.display = 'block';
+                    return;
+                }
+                
+                if (audio.paused) {
+                    setAudioState(true);
+                } else {
+                    setAudioState(false);
+                }
+            });
+            
+            // 处理音频播放完成事件
+            audio.addEventListener('ended', function() {
+                if (!isAudioDisabled() && audioFileExists) {
+                    audio.currentTime = 0;
+                    audio.play().catch(err => console.log('重新播放失败:', err));
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
